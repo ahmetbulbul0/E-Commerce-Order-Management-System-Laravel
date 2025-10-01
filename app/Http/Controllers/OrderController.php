@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Cart;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use App\Services\OrderService;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    public function store(Request $request)
+    public function store(Request $request, OrderService $orderService)
     {
         $user = $request->user();
         $cartItems = Cart::with('product')->where('user_id', $user->id)->get();
@@ -17,14 +18,13 @@ class OrderController extends Controller
             return response()->json(['message' => 'Cart is empty'], 422);
         }
 
-        $order = DB::transaction(function () use ($user, $cartItems) {
-            $total = $cartItems->sum(function ($item) {
-                return $item->quantity * $item->product->price;
-            });
+        $totals = $orderService->calculateTotals($user->id);
+
+        $order = DB::transaction(function () use ($user, $cartItems, $totals) {
 
             $order = Order::create([
                 'user_id' => $user->id,
-                'total_amount' => $total,
+                'total_amount' => $totals['total'],
                 'status' => 'pending',
             ]);
 

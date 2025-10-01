@@ -41,7 +41,7 @@ Route::prefix('v1')->group(function () {
             Route::delete('cart/{id}', [CartController::class, 'destroy']);
 
             // Orders
-            Route::post('orders', [OrderController::class, 'store']);
+            Route::post('orders', [OrderController::class, 'store'])->middleware('stock.available');
             Route::get('orders', [OrderController::class, 'index']);
 
             // Payment (mock)

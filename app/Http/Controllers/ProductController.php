@@ -11,18 +11,11 @@ class ProductController extends Controller
     {
         $query = Product::query()->with('category');
 
-        if ($search = $request->string('search')->toString()) {
-            $query->where('name', 'like', "%{$search}%");
-        }
         if ($categoryId = $request->integer('category_id')) {
             $query->where('category_id', $categoryId);
         }
-        if ($min = $request->input('min_price')) {
-            $query->where('price', '>=', $min);
-        }
-        if ($max = $request->input('max_price')) {
-            $query->where('price', '<=', $max);
-        }
+        $query->searchByName($request->string('search')->toString());
+        $query->filterByPrice($request->float('min_price'), $request->float('max_price'));
 
         return response()->json($query->paginate($request->integer('per_page', 15)));
     }
