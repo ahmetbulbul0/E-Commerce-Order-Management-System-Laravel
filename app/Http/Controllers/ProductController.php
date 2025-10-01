@@ -17,7 +17,21 @@ class ProductController extends Controller
         $query->searchByName($request->string('search')->toString());
         $query->filterByPrice($request->float('min_price'), $request->float('max_price'));
 
-        return response()->json($query->paginate($request->integer('per_page', 15)));
+        $perPage = $request->integer('per_page', 15);
+        $cacheKey = sprintf(
+            'products:index:c%s:s%s:min%s:max%s:p%s',
+            $request->integer('category_id'),
+            $request->string('search')->toString(),
+            $request->input('min_price'),
+            $request->input('max_price'),
+            $perPage
+        );
+
+        $result = cache()->remember($cacheKey, now()->addMinutes(10), function () use ($query, $perPage) {
+            return $query->paginate($perPage);
+        });
+
+        return response()->json($result);
     }
 
     public function show(int $id)

@@ -7,6 +7,7 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Services\OrderService;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\OrderPlaced;
 
 class OrderController extends Controller
 {
@@ -31,6 +32,9 @@ class OrderController extends Controller
             Cart::where('user_id', $user->id)->delete();
             return $order;
         });
+
+        // Notify asynchronously
+        $user->notify(new OrderPlaced($order));
 
         return response()->json($order, 201);
     }
