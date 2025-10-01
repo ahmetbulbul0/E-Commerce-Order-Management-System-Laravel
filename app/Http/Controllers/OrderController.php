@@ -2,61 +2,49 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Order\UpdateOrderStatusRequest;
 use App\Models\Cart;
-use App\Models\Order;
-use Illuminate\Http\Request;
 use App\Services\OrderService;
-use Illuminate\Support\Facades\DB;
 use App\Notifications\OrderPlaced;
+use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    public function store(Request $request, OrderService $orderService)
+    public function __construct(private OrderService $orderService) {}
+
+    public function store(Request $request)
     {
         $user = $request->user();
+
         $cartItems = Cart::with('product')->where('user_id', $user->id)->get();
+
         if ($cartItems->isEmpty()) {
-            return response()->json(['message' => 'Cart is empty'], 422);
+            return $this->fail('Cart is empty', 422);
         }
 
-        $totals = $orderService->calculateTotals($user->id);
+        $totals = $this->orderService->calculateTotals($user->id);
 
-        $order = DB::transaction(function () use ($user, $cartItems, $totals) {
-
-            $order = Order::create([
-                'user_id' => $user->id,
-                'total_amount' => $totals['total'],
-                'status' => 'pending',
-            ]);
-
-            Cart::where('user_id', $user->id)->delete();
-            return $order;
-        });
+        $order = $this->orderService->createFromCart($user->id, $totals);
 
         // Notify asynchronously
         $user->notify(new OrderPlaced($order));
 
-        return response()->json($order, 201);
+        return $this->created($order);
     }
 
     public function index(Request $request)
     {
-        $orders = Order::where('user_id', $request->user()->id)
-            ->orderByDesc('id')
-            ->paginate($request->integer('per_page', 15));
-        return response()->json($orders);
+        $perPage = $request->integer('per_page', 15);
+
+        $orders = $this->orderService->getPaginated($perPage, $request->user()->id);
+
+        return $this->success($orders);
     }
 
-    public function updateStatus(Request $request, int $id)
+    public function updateStatus(UpdateOrderStatusRequest $request, int $id)
     {
-        $validated = $request->validate([
-            'status' => ['required', 'in:pending,confirmed,shipped,delivered,cancelled'],
-        ]);
+        $order = $this->orderService->updateStatus($id, $request->validated()['status']);
 
-        $order = Order::findOrFail($id);
-        $order->update(['status' => $validated['status']]);
-        return response()->json($order);
+        return $this->success($order);
     }
 }
-
-
