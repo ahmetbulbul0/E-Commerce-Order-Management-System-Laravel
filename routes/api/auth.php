@@ -4,7 +4,7 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::prefix("auth")->controller(AuthController::class)->group(function () {
+Route::controller(AuthController::class)->group(function () {
     // Public auth endpoints
     Route::post('register', 'register');
     Route::post('login', 'login');

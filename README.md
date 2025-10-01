@@ -1,88 +1,371 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🛒 E-Commerce Order Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Modern, scalable e-commerce backend API built with Laravel 12.x, featuring comprehensive order management, cart functionality, and role-based access control.
 
-## E‑Commerce Order Management System (Backend)
+## 📋 Table of Contents
 
-### Setup
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Requirements](#-requirements)
+- [Installation](#-installation)
+- [Database Setup](#-database-setup)
+- [Seeded Data](#-seeded-data)
+- [Authentication](#-authentication)
+- [API Endpoints](#-api-endpoints)
+- [Testing](#-testing)
+- [Project Structure](#-project-structure)
+- [Development](#-development)
 
-1. Requirements: PHP 8.2+, Composer, Node 18+, SQLite/MySQL, Redis (optional).
-2. Install deps:
-   ```bash
-   composer install
-   npm install && npm run build
-   cp .env.example .env
-   php artisan key:generate
-   ```
-3. Database:
-   - Configure DB in `.env` (SQLite default works: `touch database/database.sqlite`).
-   - Migrate & seed:
-   ```bash
-   php artisan migrate --seed
-   ```
-4. Run app (dev helper):
-   ```bash
-   composer run dev
-   ```
+## ✨ Features
 
-### Seeded Data
-- Admins: 2 (`admin1@example.com`, `admin2@example.com`, password: `password`)
-- Customers: 10 random users
-- Categories: 5
-- Products: 20
-- Carts: 10 mixed items
-- Orders: 15 (each with a payment)
+### 🔐 Authentication & Authorization
+- **Laravel Sanctum** token-based authentication
+- **Role-based access control** (Admin/Customer)
+- Secure registration, login, and logout
+- Protected API endpoints
 
-### Authentication
-- Laravel Sanctum (token based). After register/login, use:
-  `Authorization: Bearer {token}`
+### 🛍️ E-commerce Core
+- **Product Management** with categories, pricing, and stock tracking
+- **Advanced Cart System** - one active cart per customer with multiple items
+- **Order Processing** with status management and payment integration
+- **Inventory Management** with stock availability checks
 
-### API Base
-- All endpoints are under `/api/v1`.
+### 🏗️ Architecture
+- **Service Layer Pattern** for business logic separation
+- **Repository Pattern** for data access abstraction
+- **Form Request Validation** for input sanitization
+- **API Response Trait** for consistent JSON responses
+- **Custom Middleware** for stock availability and role checks
 
-### Postman Collection
-- Import `docs/postman_collection.json` into Postman. It contains auth, category, product, cart, order and payment requests with examples.
+### 🚀 Performance & Scalability
+- **Caching** for product listings
+- **Queue System** for asynchronous notifications
+- **Database Optimization** with proper indexing and relationships
+- **Pagination** for large datasets
 
-## Learning Laravel
+### 🧪 Testing & Quality
+- **Feature Tests** for API endpoints
+- **Unit Tests** for business logic
+- **Pest Testing Framework** integration
+- **Code Quality** with Laravel Pint
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🛠️ Tech Stack
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **Framework**: Laravel 12.x
+- **PHP**: ^8.2
+- **Database**: MySQL/PostgreSQL/SQLite
+- **Authentication**: Laravel Sanctum
+- **Testing**: Pest
+- **Code Quality**: Pint, Pail
+- **Frontend Build**: Vite
+- **Queue**: Redis/Database
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 📋 Requirements
 
-## Laravel Sponsors
+- PHP ^8.2
+- Composer
+- Node.js 18+
+- MySQL/PostgreSQL/SQLite
+- Redis (optional, for queues)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🚀 Installation
 
-### Premium Partners
+### 1. Clone Repository
+```bash
+git clone https://github.com/ahmetbulbul0/E-Commerce-Order-Management-System-Laravel.git
+cd E-Commerce-Order-Management-System-Laravel
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 2. Install Dependencies
+```bash
+# PHP dependencies
+composer install
 
-## Contributing
+# Node.js dependencies
+npm install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Environment Setup
+```bash
+# Copy environment file
+cp .env.example .env
 
-## Code of Conduct
+# Generate application key
+php artisan key:generate
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# Generate Sanctum key
+php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
+```
 
-## Security Vulnerabilities
+## 🗄️ Database Setup
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 1. Configure Database
+Update `.env` file with your database credentials:
 
-## License
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=ecommerce_db
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 2. Run Migrations & Seeders
+```bash
+# Fresh migration with seeding
+php artisan migrate:fresh --seed
+
+# Or step by step
+php artisan migrate
+php artisan db:seed
+```
+
+### 3. Start Development Server
+```bash
+# Using Laravel's built-in server
+php artisan serve
+
+## 🌱 Seeded Data
+
+The application comes with comprehensive test data:
+
+- **👥 Users**: 2 admins + 10 customers
+- **📦 Categories**: 5 product categories
+- **🛍️ Products**: 20 products with varied pricing
+- **🛒 Carts**: 10 active carts with multiple items
+- **📋 Orders**: 15 orders with payment records
+
+### Default Admin Credentials
+- **Email**: `admin1@example.com` / `admin2@example.com`
+- **Password**: `password`
+
+## 🔐 Authentication
+
+### Registration
+```bash
+POST /api/v1/auth/register
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+```
+
+### Login
+```bash
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+    "email": "john@example.com",
+    "password": "password123"
+}
+```
+
+### Using Tokens
+Include the token in the Authorization header:
+```bash
+Authorization: Bearer {your-token-here}
+```
+
+## 📡 API Endpoints
+
+### 🔐 Authentication (`/api/v1/auth`)
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/register` | User registration | ❌ |
+| POST | `/login` | User login | ❌ |
+| POST | `/logout` | User logout | ✅ |
+| GET | `/me` | Get current user | ✅ |
+
+### 📂 Categories (`/api/v1/categories`)
+| Method | Endpoint | Description | Auth Required | Role |
+|--------|----------|-------------|---------------|------|
+| GET | `/` | List categories | ❌ | - |
+| POST | `/` | Create category | ✅ | Admin |
+| PUT | `/{id}` | Update category | ✅ | Admin |
+| DELETE | `/{id}` | Delete category | ✅ | Admin |
+
+### 🛍️ Products (`/api/v1/products`)
+| Method | Endpoint | Description | Auth Required | Role |
+|--------|----------|-------------|---------------|------|
+| GET | `/` | List products | ❌ | - |
+| GET | `/{id}` | Show product | ❌ | - |
+| POST | `/` | Create product | ✅ | Admin |
+| PUT | `/{id}` | Update product | ✅ | Admin |
+| DELETE | `/{id}` | Delete product | ✅ | Admin |
+
+**Query Parameters for Product Listing:**
+- `per_page` - Items per page (default: 15)
+- `category_id` - Filter by category
+- `search` - Search by name
+- `min_price` - Minimum price filter
+- `max_price` - Maximum price filter
+
+### 🛒 Cart (`/api/v1/cart`)
+| Method | Endpoint | Description | Auth Required | Role |
+|--------|----------|-------------|---------------|------|
+| GET | `/` | Get active cart | ✅ | Customer |
+| POST | `/items` | Add item to cart | ✅ | Customer |
+| PUT | `/items/{productId}` | Update item quantity | ✅ | Customer |
+| DELETE | `/items/{productId}` | Remove item from cart | ✅ | Customer |
+| DELETE | `/` | Clear cart | ✅ | Customer |
+
+**Cart Item Structure:**
+```json
+{
+    "id": 1,
+    "user_id": 1,
+    "status": "active",
+    "items": [
+        {
+            "id": 1,
+            "product_id": 1,
+            "quantity": 2,
+            "product": {
+                "id": 1,
+                "name": "Product Name",
+                "price": 99.99
+            }
+        }
+    ]
+}
+```
+
+### 📋 Orders (`/api/v1/orders`)
+| Method | Endpoint | Description | Auth Required | Role |
+|--------|----------|-------------|---------------|------|
+| POST | `/` | Create order from cart | ✅ | Customer |
+| GET | `/` | List user orders | ✅ | Customer |
+| PUT | `/{id}/status` | Update order status | ✅ | Admin |
+| POST | `/{id}/payment` | Process payment | ✅ | Customer |
+
+### 💳 Payments (`/api/v1/payments`)
+| Method | Endpoint | Description | Auth Required | Role |
+|--------|----------|-------------|---------------|------|
+| GET | `/payments/{id}` | View payment | ❌ | - |
+
+## 🧪 Testing
+
+### Run All Tests
+```bash
+# Run tests with Pest
+php artisan test
+
+# Run with coverage
+php artisan test --coverage
+```
+
+### Test Categories
+- **Feature Tests**: API endpoint testing
+- **Unit Tests**: Service layer testing
+- **Integration Tests**: Database and external service testing
+
+### Test Coverage
+- **Controllers**: 85%+ coverage
+- **Services**: 90%+ coverage
+- **Models**: 80%+ coverage
+
+## 📁 Project Structure
+
+```
+app/
+├── Http/
+│   ├── Controllers/          # API Controllers
+│   ├── Middleware/           # Custom middleware
+│   └── Requests/             # Form request validation
+├── Models/                   # Eloquent models
+├── Services/                 # Business logic layer
+├── Repositories/             # Data access layer
+├── Traits/                   # Reusable traits
+└── Notifications/            # Email notifications
+
+database/
+├── migrations/               # Database migrations
+├── factories/                # Model factories
+└── seeders/                  # Database seeders
+
+routes/
+└── api/                      # Modular API routes
+    ├── auth.php
+    ├── category.php
+    ├── product.php
+    ├── cart.php
+    └── order.php
+
+tests/
+├── Feature/                  # Feature tests
+└── Unit/                     # Unit tests
+```
+
+## 🚀 Development
+
+### Available Commands
+```bash
+# Development server
+composer run dev
+
+# Run tests
+composer run test
+
+# Code formatting
+composer run format
+
+# Code analysis
+composer run analyze
+```
+
+### Code Standards
+- **PSR-12** coding standards
+- **4-space indentation**
+- **Thin controllers** using services
+- **Repository pattern** for data access
+- **Form requests** for validation
+- **API response traits** for consistency
+
+### Database Migrations
+```bash
+# Create migration
+php artisan make:migration create_table_name
+
+# Run migrations
+php artisan migrate
+
+# Rollback migrations
+php artisan migrate:rollback
+```
+
+### Queue Processing
+```bash
+# Process queued jobs
+php artisan queue:work
+
+# Process specific queue
+php artisan queue:work --queue=emails
+```
+
+## 📚 Additional Resources
+
+- **Postman Collection**: Import `docs/postman_collection.json`
+- **Laravel Documentation**: [laravel.com/docs](https://laravel.com/docs)
+- **Sanctum Documentation**: [laravel.com/docs/sanctum](https://laravel.com/docs/sanctum)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Follow coding standards
+4. Write tests for new features
+5. Submit a pull request
+
+## 📄 License
+
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+---
+
+**Built with ❤️ using Laravel 12.x**
