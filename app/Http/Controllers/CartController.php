@@ -2,37 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Cart\StoreCartRequest;
-use App\Http\Requests\Cart\UpdateCartRequest;
+use App\Http\Requests\Cart\AddItemRequest;
+use App\Http\Requests\Cart\UpdateItemRequest;
 use App\Services\CartService;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
     public function __construct(private CartService $cartService) {}
+
     public function index(Request $request)
     {
-        $items = $this->cartService->listForUser($request->user()->id, $request->integer('per_page', 15));
-        return $this->success($items);
+        $cart = $this->cartService->getActiveCart($request->user()->id);
+        return $this->success($cart);
     }
 
-    public function store(StoreCartRequest $request)
+    public function addItem(AddItemRequest $request)
     {
-        $item = $this->cartService->addOrUpdate($request->user()->id, $request->validated()['product_id'], $request->validated()['quantity']);
-        return $this->created($item);
+        $cart = $this->cartService->addItem($request->user()->id, $request->validated());
+        return $this->success($cart);
     }
 
-    public function update(UpdateCartRequest $request, int $id)
+    public function updateItem(UpdateItemRequest $request, int $productId)
     {
-        $item = $this->cartService->updateQuantity($request->user()->id, $id, $request->validated()['quantity']);
-        return $this->success($item);
+        $cart = $this->cartService->updateItem($request->user()->id, $productId, $request->validated()['quantity']);
+        return $this->success($cart);
     }
 
-    public function destroy(Request $request, int $id)
+    public function removeItem(Request $request, int $productId)
     {
-        $this->cartService->remove($request->user()->id, $id);
-        return $this->deleted('Removed');
+        $cart = $this->cartService->removeItem($request->user()->id, $productId);
+        return $this->success($cart);
+    }
+
+    public function clear(Request $request)
+    {
+        $this->cartService->clearCart($request->user()->id);
+        return $this->success(['message' => 'Cart cleared']);
     }
 }
-
-

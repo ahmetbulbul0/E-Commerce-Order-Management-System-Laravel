@@ -16,7 +16,8 @@ class OrderService
 
     public function calculateTotals(int $userId): array
     {
-        $items = Cart::with('product')->where('user_id', $userId)->get();
+        $cart = Cart::with('items.product')->where('user_id', $userId)->active()->first();
+        $items = $cart?->items ?? collect();
         $subtotal = $items->sum(fn ($i) => $i->quantity * $i->product->price);
         $discount = $this->applyDiscount($subtotal);
         $total = max(0, $subtotal - $discount);
@@ -37,7 +38,12 @@ class OrderService
                 'status' => 'pending',
             ]);
 
-            Cart::where('user_id', $userId)->delete();
+            // Archive the cart instead of deleting it
+            $cart = Cart::where('user_id', $userId)->active()->first();
+            if ($cart) {
+                $cart->update(['status' => 'archived']);
+            }
+
             return $order;
         });
     }

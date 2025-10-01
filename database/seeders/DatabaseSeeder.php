@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Cart;
+use App\Models\CartItem;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -38,14 +39,22 @@ class DatabaseSeeder extends Seeder
         // Customers: 10
         $customers = User::factory(10)->create();
 
-        // Carts: 10
+        // Carts: 10 with items
         $products = Product::inRandomOrder()->take(10)->get();
         foreach ($products as $index => $product) {
-            Cart::create([
+            $cart = Cart::create([
                 'user_id' => $customers[$index % $customers->count()]->id,
-                'product_id' => $product->id,
-                'quantity' => rand(1, 3),
+                'status' => 'active',
             ]);
+            
+            // Add 1-3 random products to each cart
+            $randomProducts = Product::inRandomOrder()->take(rand(1, 3))->get();
+            foreach ($randomProducts as $randomProduct) {
+                $cart->items()->create([
+                    'product_id' => $randomProduct->id,
+                    'quantity' => rand(1, 3),
+                ]);
+            }
         }
 
         // Orders: 15 (with payments)

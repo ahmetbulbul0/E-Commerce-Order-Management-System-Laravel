@@ -15,15 +15,13 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $user = $request->user();
-
-        $cartItems = Cart::with('product')->where('user_id', $user->id)->get();
-
-        if ($cartItems->isEmpty()) {
+        $cart = Cart::with('items.product')->where('user_id', $user->id)->active()->first();
+        
+        if (!$cart || $cart->items->isEmpty()) {
             return $this->fail('Cart is empty', 422);
         }
 
         $totals = $this->orderService->calculateTotals($user->id);
-
         $order = $this->orderService->createFromCart($user->id, $totals);
 
         // Notify asynchronously

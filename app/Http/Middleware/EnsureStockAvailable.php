@@ -12,13 +12,15 @@ class EnsureStockAvailable
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        $items = Cart::with('product')->where('user_id', $user->id)->get();
+        $cart = Cart::with('items.product')->where('user_id', $user->id)->active()->first();
 
-        foreach ($items as $item) {
-            if ($item->product->stock < $item->quantity) {
-                return response()->json([
-                    'message' => 'Insufficient stock for product: ' . $item->product->name,
-                ], 422);
+        if ($cart) {
+            foreach ($cart->items as $item) {
+                if ($item->product->stock < $item->quantity) {
+                    return response()->json([
+                        'message' => 'Insufficient stock for product: ' . $item->product->name,
+                    ], 422);
+                }
             }
         }
 

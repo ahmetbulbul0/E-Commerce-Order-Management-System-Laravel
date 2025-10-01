@@ -3,37 +3,111 @@
 namespace App\Services;
 
 use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\Product;
-use App\Repositories\Interfaces\CartRepositoryInterface;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class CartService
 {
-    public function __construct(private CartRepositoryInterface $cartRepository) {}
-
-    public function listForUser(int $userId, int $perPage = 15): LengthAwarePaginator
+    public function getActiveCart(int $userId): ?Cart
     {
-        return $this->cartRepository->paginateByUser($userId, $perPage);
+        return Cart::with(['items.product'])
+            ->where('user_id', $userId)
+            ->active()
+            ->first();
     }
 
-    public function addOrUpdate(int $userId, int $productId, int $quantity): Cart
+    public function addItem(int $userId, array $data): Cart
     {
-        Product::findOrFail($productId);
-        return $this->cartRepository->updateOrCreate($userId, $productId, $quantity);
+        return DB::transaction(function () use ($userId, $data) {
+            $cart = $this->getOrCreateActiveCart($userId);
+            
+            $existingItem = $cart->items()->where('product_id', $data['product_id'])->first();
+            
+            if ($existingItem) {
+                $existingItem->update([
+                    'quantity' => $existingItem->quantity + $data['quantity']
+                ]);
+            } else {
+                $cart->items()->create([
+                    'product_id' => $data['product_id'],
+                    'quantity' => $data['quantity']
+                ]);
+            }
+
+            return $cart->fresh(['items.product']);
+        });
     }
 
-    public function updateQuantity(int $userId, int $cartId, int $quantity): Cart
+    public function updateItem(int $userId, int $productId, int $quantity): Cart
     {
-        $item = $this->cartRepository->findForUserOrFail($userId, $cartId);
-        $this->cartRepository->updateQuantity($item, $quantity);
-        return $item->fresh();
+        return DB::transaction(function () use ($userId, $productId, $quantity) {
+            $cart = $this->getActiveCart($userId);
+            
+            if (!$cart) {
+                throw new \Exception('Cart not found');
+            }
+
+            $item = $cart->items()->where('product_id', $productId)->first();
+            
+            if (!$item) {
+                throw new \Exception('Item not found in cart');
+            }
+
+            $item->update(['quantity' => $quantity]);
+
+            return $cart->fresh(['items.product']);
+        });
     }
 
-    public function remove(int $userId, int $cartId): bool
+    public function removeItem(int $userId, int $productId): Cart
     {
-        $item = $this->cartRepository->findForUserOrFail($userId, $cartId);
-        return $this->cartRepository->delete($item);
+        return DB::transaction(function () use ($userId, $productId) {
+            $cart = $this->getActiveCart($userId);
+            
+            if (!$cart) {
+                throw new \Exception('Cart not found');
+            }
+
+            $cart->items()->where('product_id', $productId)->delete();
+
+            return $cart->fresh(['items.product']);
+        });
+    }
+
+    public function clearCart(int $userId): void
+    {
+        DB::transaction(function () use ($userId) {
+            $cart = $this->getActiveCart($userId);
+            
+            if ($cart) {
+                $cart->items()->delete();
+            }
+        });
+    }
+
+    public function archiveCart(int $userId): void
+    {
+        DB::transaction(function () use ($userId) {
+            $cart = $this->getActiveCart($userId);
+            
+            if ($cart) {
+                $cart->update(['status' => 'archived']);
+            }
+        });
+    }
+
+    private function getOrCreateActiveCart(int $userId): Cart
+    {
+        $cart = $this->getActiveCart($userId);
+        
+        if (!$cart) {
+            $cart = Cart::create([
+                'user_id' => $userId,
+                'status' => 'active'
+            ]);
+        }
+
+        return $cart;
     }
 }
-
-
