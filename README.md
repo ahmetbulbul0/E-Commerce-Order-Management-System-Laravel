@@ -7,19 +7,46 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+## E‑Commerce Order Management System (Backend)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Setup
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+1. Requirements: PHP 8.2+, Composer, Node 18+, SQLite/MySQL, Redis (optional).
+2. Install deps:
+   ```bash
+   composer install
+   npm install && npm run build
+   cp .env.example .env
+   php artisan key:generate
+   ```
+3. Database:
+   - Configure DB in `.env` (SQLite default works: `touch database/database.sqlite`).
+   - Migrate & seed:
+   ```bash
+   php artisan migrate --seed
+   ```
+4. Run app (dev helper):
+   ```bash
+   composer run dev
+   ```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Seeded Data
+- Admins: 2 (`admin1@example.com`, `admin2@example.com`, password: `password`)
+- Customers: 10 random users
+- Categories: 5
+- Products: 20
+- Carts: 10 mixed items
+- Orders: 15 (each with a payment)
+
+### Authentication
+- Laravel Sanctum (token based). After register/login, use:
+  `Authorization: Bearer {token}`
+
+### API Base
+- All endpoints are under `/api/v1`.
+
+### Postman Collection
+- Import `docs/postman_collection.json` into Postman. It contains auth, category, product, cart, order and payment requests with examples.
 
 ## Learning Laravel
 
