@@ -2,54 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
+use App\Http\Requests\Category\StoreCategoryRequest;
+use App\Http\Requests\Category\UpdateCategoryRequest;
+use App\Services\CategoryService;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
+    public function __construct(
+        private CategoryService $categoryService
+    ) {}
+
     public function index(Request $request)
     {
-        $query = Category::query();
+        $search = $request->string('search')->toString() ?: null;
+        $perPage = $request->integer('per_page', 15);
 
-        if ($search = $request->string('search')->toString()) {
-            $query->where('name', 'like', "%{$search}%");
-        }
-
-        return response()->json($query->paginate($request->integer('per_page', 15)));
+        $categories = $this->categoryService->getPaginated($perPage, $search);
+        return $this->paginated($categories);
     }
 
-    public function store(Request $request)
+    public function store(StoreCategoryRequest $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'status' => ['nullable', 'string'],
-        ]);
-
-        $category = Category::create($validated);
-        return response()->json($category, 201);
+        $category = $this->categoryService->create($request->validated());
+        return $this->created($category);
     }
 
-    public function update(Request $request, int $id)
+    public function update(UpdateCategoryRequest $request, int $id)
     {
-        $category = Category::findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => ['sometimes', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'status' => ['nullable', 'string'],
-        ]);
-
-        $category->update($validated);
-        return response()->json($category);
+        $category = $this->categoryService->update($id, $request->validated());
+        return $this->success($category);
     }
 
     public function destroy(int $id)
     {
-        $category = Category::findOrFail($id);
-        $category->delete();
-        return response()->json(['message' => 'Deleted']);
+        $this->categoryService->delete($id);
+        return $this->deleted();
     }
 }
-
-
