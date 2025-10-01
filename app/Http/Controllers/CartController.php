@@ -2,54 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
-use App\Models\Product;
+use App\Http\Requests\Cart\StoreCartRequest;
+use App\Http\Requests\Cart\UpdateCartRequest;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    public function __construct(private CartService $cartService) {}
     public function index(Request $request)
     {
-        $items = Cart::with('product')
-            ->where('user_id', $request->user()->id)
-            ->paginate($request->integer('per_page', 15));
-
-        return response()->json($items);
+        $items = $this->cartService->listForUser($request->user()->id, $request->integer('per_page', 15));
+        return $this->success($items);
     }
 
-    public function store(Request $request)
+    public function store(StoreCartRequest $request)
     {
-        $validated = $request->validate([
-            'product_id' => ['required', 'exists:products,id'],
-            'quantity' => ['required', 'integer', 'min:1'],
-        ]);
-
-        $product = Product::findOrFail($validated['product_id']);
-
-        $item = Cart::updateOrCreate(
-            ['user_id' => $request->user()->id, 'product_id' => $product->id],
-            ['quantity' => $validated['quantity']]
-        );
-
-        return response()->json($item, 201);
+        $item = $this->cartService->addOrUpdate($request->user()->id, $request->validated()['product_id'], $request->validated()['quantity']);
+        return $this->created($item);
     }
 
-    public function update(Request $request, int $id)
+    public function update(UpdateCartRequest $request, int $id)
     {
-        $validated = $request->validate([
-            'quantity' => ['required', 'integer', 'min:1'],
-        ]);
-
-        $item = Cart::where('user_id', $request->user()->id)->findOrFail($id);
-        $item->update(['quantity' => $validated['quantity']]);
-        return response()->json($item);
+        $item = $this->cartService->updateQuantity($request->user()->id, $id, $request->validated()['quantity']);
+        return $this->success($item);
     }
 
     public function destroy(Request $request, int $id)
     {
-        $item = Cart::where('user_id', $request->user()->id)->findOrFail($id);
-        $item->delete();
-        return response()->json(['message' => 'Removed']);
+        $this->cartService->remove($request->user()->id, $id);
+        return $this->deleted('Removed');
     }
 }
 
