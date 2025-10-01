@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
+use App\Models\Order;
+use App\Models\Payment;
+use App\Models\Product;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,11 +16,28 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'password',
         ]);
+
+        Category::factory(5)->create();
+        Product::factory(20)->create();
+
+        $customers = User::factory(5)->create();
+
+        $customers->each(function (User $customer) {
+            $orders = Order::factory(2)->create([
+                'user_id' => $customer->id,
+            ]);
+
+            $orders->each(function (Order $order) {
+                Payment::factory()->create([
+                    'order_id' => $order->id,
+                    'amount' => $order->total_amount,
+                ]);
+            });
+        });
     }
 }
